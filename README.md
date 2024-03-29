@@ -1,3 +1,3 @@
 # Linke Website (server)
 
-Link - https://linke-api.vercel.app
+Link - https://api.linke.su
