@@ -1,43 +1,62 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, StreamableFile } from '@nestjs/common';
 import { CreateLinkDto } from './dto/create-link.dto';
 import { UpdateLinkDto } from './dto/update-link.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { nanoid } from 'nanoid';
+import { QrCodeService } from '../qr-code/qr-code.service';
 
 @Injectable()
 export class LinksService {
-  constructor(private prismaService: PrismaService) {}
+  constructor(
+    private prismaService: PrismaService,
+    private qrCodeService: QrCodeService,
+  ) {}
 
-  findAll() {
+  getLinks() {
     return this.prismaService.link.findMany();
   }
 
-  findOne(id: string) {
+  getLink(id: string) {
     return this.prismaService.link.findUnique({ where: { id } });
   }
 
-  async findOneByShort(short: string) {
-    const link = await this.prismaService.link.findUnique({
+  async getLinkByShort(short: string) {
+    return this.prismaService.link.findUnique({
       where: { short },
       select: { short: true, longUrl: true },
     });
+  }
+
+  async generateQrCodeById(id: string) {
+    const link = await this.getLink(id);
 
     if (!link) throw new NotFoundException();
 
-    return link;
+    const qrCodeBase64 = await this.qrCodeService.generateQrCode(
+      `${process.env.CLIENT_URL}/${link.short}`,
+    );
+
+    const buffer = Buffer.from(
+      qrCodeBase64.replace(/^data:image\/\w+;base64,/, ''),
+      'base64',
+    );
+
+    return new StreamableFile(buffer);
   }
 
-  create(data: CreateLinkDto) {
+  async createLink(data: CreateLinkDto) {
     const short = nanoid(6);
 
-    return this.prismaService.link.create({ data: { short, ...data } });
+    return this.prismaService.link.create({
+      data: { short, ...data },
+    });
   }
 
-  update(id: string, data: UpdateLinkDto) {
+  updateLink(id: string, data: UpdateLinkDto) {
     return this.prismaService.link.update({ where: { id }, data });
   }
 
-  remove(id: string) {
+  async removeLink(id: string) {
     return this.prismaService.link.delete({ where: { id } });
   }
 }

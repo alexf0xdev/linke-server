@@ -1,23 +1,40 @@
-import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Header,
+  Param,
+  Post,
+  UseInterceptors,
+} from '@nestjs/common';
 import { LinksService } from './links.service';
 import { CreateLinkDto } from './dto/create-link.dto';
+import { NotFoundInterceptor } from '../inteceptors/not-found.interceptor';
 
 @Controller('links')
 export class LinksController {
   constructor(private linksService: LinksService) {}
 
   @Get(':short')
-  findOne(@Param('short') short: string) {
-    return this.linksService.findOneByShort(short);
+  @UseInterceptors(NotFoundInterceptor)
+  getLinkByShort(@Param('short') short: string) {
+    return this.linksService.getLinkByShort(short);
+  }
+
+  @Get(':id/qr-code')
+  @Header('Content-Type', 'image/png')
+  generateQrCodeById(@Param('id') id: string) {
+    return this.linksService.generateQrCodeById(id);
   }
 
   @Post()
-  create(@Body() data: CreateLinkDto) {
-    return this.linksService.create(data);
+  createLink(@Body() data: CreateLinkDto) {
+    return this.linksService.createLink(data);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.linksService.remove(id);
+  removeLink(@Param('id') id: string) {
+    return this.linksService.removeLink(id);
   }
 }
