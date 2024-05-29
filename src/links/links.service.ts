@@ -20,7 +20,7 @@ export class LinksService {
     return this.prismaService.link.findUnique({ where: { id } });
   }
 
-  async getLinkByShort(short: string) {
+  getLinkByShort(short: string) {
     return this.prismaService.link.findUnique({
       where: { short },
       select: { short: true, longUrl: true },
@@ -44,7 +44,7 @@ export class LinksService {
     return new StreamableFile(buffer);
   }
 
-  async createLink(data: CreateLinkDto) {
+  createLink(data: CreateLinkDto) {
     const short = nanoid(6);
 
     return this.prismaService.link.create({
@@ -56,7 +56,7 @@ export class LinksService {
     return this.prismaService.link.update({ where: { id }, data });
   }
 
-  async removeLink(id: string) {
+  removeLink(id: string) {
     return this.prismaService.link.delete({ where: { id } });
   }
 }
