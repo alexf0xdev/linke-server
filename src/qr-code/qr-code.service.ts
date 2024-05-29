@@ -3,7 +3,7 @@ import qrcode from 'qrcode';
 
 @Injectable()
 export class QrCodeService {
-  async generateQrCode(data: string) {
+  generateQrCode(data: string) {
     try {
       return qrcode.toDataURL(data);
     } catch {
